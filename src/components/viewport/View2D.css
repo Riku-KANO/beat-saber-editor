@@ -1,0 +1,44 @@
+.view2d {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-radius: 4px;
+}
+
+.view2d-header {
+  padding: 8px 12px;
+  border-radius: 4px 4px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.view2d-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.view2d-canvas {
+  flex: 1;
+  cursor: crosshair;
+  display: block;
+  margin: 0 auto;
+}
+
+.view2d-canvas:hover {
+  cursor: pointer;
+}
+
+.timeline-info {
+  display: flex;
+  gap: 10px;
+  font-size: 11px;
+  font-family: monospace;
+}
+
+.timeline-info span {
+  padding: 2px 6px;
+  border-radius: 3px;
+  border-left: 3px solid;
+}

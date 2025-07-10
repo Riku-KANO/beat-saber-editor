@@ -1,0 +1,310 @@
+.timeline {
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+.timeline-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 10px;
+  flex-wrap: wrap;
+}
+
+.transport-controls {
+  display: flex;
+  gap: 5px;
+}
+
+.play-button {
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.play-button:hover {
+  /* Hover styles handled by inline styles */
+}
+
+.play-button.playing {
+  /* Playing styles handled by inline styles */
+}
+
+.stop-button {
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.stop-button:hover {
+  /* Hover styles handled by inline styles */
+}
+
+.add-object-controls {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.add-object-button {
+  border: none;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.add-object-button.red {
+  background: #ff4444;
+}
+
+.add-object-button.red:hover {
+  background: #ff6666;
+}
+
+.add-object-button.blue {
+  background: #4444ff;
+}
+
+.add-object-button.blue:hover {
+  background: #6666ff;
+}
+
+.add-object-button.black {
+  background: #333;
+}
+
+.add-object-button.black:hover {
+  background: #555;
+}
+
+.add-object-button.white {
+  background: #888;
+}
+
+.add-object-button.white:hover {
+  background: #aaa;
+}
+
+.time-display {
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.timeline-content {
+  flex: 1;
+  overflow: auto;
+}
+
+.timeline-track {
+  position: relative;
+  height: 100%;
+  background: #2a2a2a;
+  cursor: pointer;
+}
+
+.playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #ff4a4a;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.object-track {
+  position: relative;
+  height: 40px;
+  border-bottom: 1px solid #444;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.object-track:hover {
+  background: #333;
+}
+
+.object-track.selected {
+  background: #444;
+  border-left: 3px solid #4a9eff;
+}
+
+.track-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  min-width: 100px;
+  font-size: 12px;
+  background: #333;
+  border-right: 1px solid #444;
+}
+
+.object-type {
+  text-transform: capitalize;
+  color: #ccc;
+}
+
+.object-color.red {
+  color: #ff4444;
+}
+
+.object-color.blue {
+  color: #4444ff;
+}
+
+.object-color.white {
+  color: #ffffff;
+}
+
+.object-color.black {
+  color: #666;
+}
+
+.cut-direction {
+  font-size: 10px;
+  color: #999;
+  text-transform: uppercase;
+  background: #444;
+  padding: 1px 4px;
+  border-radius: 2px;
+  margin-left: 4px;
+}
+
+.delete-object-button {
+  background: #ff4444;
+  border: none;
+  color: white;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  margin-left: auto;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.delete-object-button:hover {
+  opacity: 1;
+}
+
+.keyframes {
+  position: absolute;
+  left: 100px;
+  right: 0;
+  height: 100%;
+}
+
+.keyframe {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  background: #4a9eff;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 5;
+}
+
+.keyframe:hover {
+  background: #5ab4ff;
+  transform: translateY(-50%) scale(1.2);
+}
+
+.add-keyframe-zone {
+  position: absolute;
+  left: 100px;
+  right: 0;
+  height: 100%;
+  cursor: crosshair;
+}
+
+.waveform-container {
+  padding: 10px;
+  padding-left: 100px; /* Align with timeline track header */
+  background: #1a1a1a;
+  border-bottom: 1px solid #444;
+  overflow-x: auto;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.time-grid {
+  position: absolute;
+  top: 0;
+  left: 100px;
+  right: 0;
+  height: 100%;
+  pointer-events: none;
+}
+
+.time-marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #555;
+  border-left: 1px solid #666;
+}
+
+.time-marker.subdivision {
+  background: #444;
+  border-left: 1px solid #4a4a4a;
+  opacity: 0.7;
+}
+
+.time-label {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  font-size: 10px;
+  color: #999;
+  background: #2a2a2a;
+  padding: 1px 3px;
+  border-radius: 2px;
+}
+
+.frame-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 16px;
+}
+
+.frame-button {
+  padding: 4px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 14px;
+  min-width: 32px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.frame-button:hover {
+  /* Hover styles handled by inline styles */
+}
+
+.frame-button:active {
+  /* Active styles handled by inline styles */
+}
+
+.frame-info {
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  min-width: 60px;
+  text-align: center;
+}
