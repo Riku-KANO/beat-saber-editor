@@ -117,7 +117,8 @@ export class AudioManager {
       this.play(this.pausedTime)
     }
     
-    this.emitStateChange()
+    // Don't emit state change for manual seeks to avoid overriding UI
+    // this.emitStateChange()
   }
   
   /**
@@ -153,9 +154,11 @@ export class AudioManager {
   }
   
   private emitStateChange() {
+    // Don't emit time updates if we're not playing
+    const isCurrentlyPlaying = this.isPlaying()
     this.onStateChange({
-      isPlaying: this.isPlaying(),
-      isEditorPlaying: this.isPlaying(),
+      isPlaying: isCurrentlyPlaying,
+      isEditorPlaying: isCurrentlyPlaying,
       currentTime: this.getCurrentTime(),
       duration: this.getDuration()
     })

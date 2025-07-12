@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react'
-import { useEditorStore } from '../../store/editorStore'
+import { useEditorStore, EditorObject } from '../../store/editorStore'
 import { useTheme } from '../../contexts/ThemeContext'
 import './View2D.css'
 
@@ -7,11 +7,14 @@ function View2D() {
   const { theme } = useTheme()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const { objects, selectedObjectId, currentTime, bpm, beatsPerMeasure, setSelectedObject, updateKeyframe, addKeyframe, setCurrentTime } = useEditorStore()
+  const { objects, selectedObjectId, currentTime, bpm, beatsPerMeasure, setSelectedObject, updateKeyframe, addKeyframe, setCurrentTime, updateObject } = useEditorStore()
   const [isDragging, setIsDragging] = React.useState(false)
   const [dragOffset, setDragOffset] = React.useState({ x: 0, y: 0 })
   const [canvasSize, setCanvasSize] = React.useState({ width: 400, height: 300 })
   const [isDraggingTimeline, setIsDraggingTimeline] = React.useState(false)
+  
+  // Get selected object for UI display
+  const selectedObject = selectedObjectId ? objects.find(obj => obj.id === selectedObjectId) : null
   
   // Calculate timeline position info
   const getSixteenthInterval = () => {
@@ -83,7 +86,9 @@ function View2D() {
       if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect()
         const width = Math.max(300, rect.width - 20) // 10px padding on each side
-        const height = Math.max(200, rect.height - 60) // Account for header
+        // Account for header (60px) and properties panel (selectedObject ? 44px : 0px)
+        const propertiesPanelHeight = selectedObject ? 44 : 0
+        const height = Math.max(200, rect.height - 60 - propertiesPanelHeight)
         setCanvasSize({ width, height })
       }
     }
@@ -94,7 +99,7 @@ function View2D() {
     return () => {
       window.removeEventListener('resize', updateCanvasSize)
     }
-  }, [])
+  }, [selectedObject])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -199,6 +204,9 @@ function View2D() {
           ctx.moveTo(5, -5)
           ctx.lineTo(10, 0)
           ctx.lineTo(5, 5)
+        } else if (obj.cutDirection === 'any') {
+          // Draw circle for "any direction"
+          ctx.arc(0, 0, 8, 0, Math.PI * 2)
         }
         ctx.stroke()
         
@@ -476,6 +484,21 @@ function View2D() {
     setIsDraggingTimeline(false)
   }
 
+  // Cut direction options
+  const cutDirectionOptions = [
+    { value: 'up', label: '↑ Up', symbol: '↑' },
+    { value: 'down', label: '↓ Down', symbol: '↓' },
+    { value: 'left', label: '← Left', symbol: '←' },
+    { value: 'right', label: '→ Right', symbol: '→' },
+    { value: 'any', label: '● Any Direction', symbol: '●' }
+  ]
+
+  const handleCutDirectionChange = (newCutDirection: string) => {
+    if (selectedObject && selectedObject.type === 'block') {
+      updateObject(selectedObjectId!, { cutDirection: newCutDirection as any })
+    }
+  }
+
   return (
     <div ref={containerRef} className="view2d" style={{ background: theme.background, borderColor: theme.border }}>
       <div className="view2d-header" style={{ background: theme.backgroundSecondary, borderBottomColor: theme.border }}>
@@ -485,6 +508,62 @@ function View2D() {
           <span style={{ background: theme.backgroundTertiary, color: theme.text, borderLeftColor: theme.accent }}>M{getCurrentMeasure()}:{getCurrentBeat()}:{getCurrentSixteenthInBeat()}</span>
         </div>
       </div>
+      
+      {/* Object Properties Panel */}
+      {selectedObject && (
+        <div className="object-properties" style={{ 
+          background: theme.backgroundSecondary, 
+          borderBottom: `1px solid ${theme.border}`,
+          padding: '8px 10px',
+          display: 'flex',
+          gap: '15px',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          minHeight: '44px'
+        }}>
+          <div style={{ color: theme.text, fontSize: '13px', fontWeight: 'bold' }}>
+            Selected: {selectedObject.type.charAt(0).toUpperCase() + selectedObject.type.slice(1)} 
+            <span style={{ 
+              color: selectedObject.color === 'red' ? '#ff4444' : selectedObject.color === 'blue' ? '#4444ff' : theme.text,
+              marginLeft: '8px'
+            }}>
+              ({selectedObject.color})
+            </span>
+          </div>
+          
+          {selectedObject.type === 'block' && (
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <label style={{ color: theme.text, fontSize: '12px' }}>Cut Direction:</label>
+              <div style={{ display: 'flex', gap: '3px' }}>
+                {cutDirectionOptions.map(option => (
+                  <button
+                    key={option.value}
+                    onClick={() => handleCutDirectionChange(option.value)}
+                    style={{
+                      background: selectedObject.cutDirection === option.value ? theme.accent : theme.backgroundTertiary,
+                      color: selectedObject.cutDirection === option.value ? 'white' : theme.text,
+                      border: `1px solid ${theme.border}`,
+                      borderRadius: '3px',
+                      padding: '3px 6px',
+                      cursor: 'pointer',
+                      fontSize: '11px',
+                      minWidth: '24px',
+                      height: '24px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                    title={option.label}
+                  >
+                    {option.symbol}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <canvas
         ref={canvasRef}
         width={canvasSize.width}

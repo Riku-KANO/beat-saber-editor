@@ -56,8 +56,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       color: 'red',
       cutDirection: 'up',
       keyframes: [
-        { time: 0, position: [-1, 1, 0], rotation: [0, 0, 0] },
-        { time: 2, position: [1, 1, 0], rotation: [0, 0, 0] }
+        { time: 0, position: [-1, 1, 0], rotation: [0, 0, 0] }
       ]
     },
     {
@@ -66,16 +65,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       color: 'blue',
       cutDirection: 'down',
       keyframes: [
-        { time: 0, position: [1, 1, 0], rotation: [0, 0, 0] },
-        { time: 2, position: [-1, 1, 0], rotation: [0, 0, 0] }
-      ]
-    },
-    {
-      id: '3',
-      type: 'bomb',
-      color: 'black',
-      keyframes: [
-        { time: 1, position: [0, 1, 0], rotation: [0, 0, 0] }
+        { time: 0, position: [1, 1, 0], rotation: [0, 0, 0] }
       ]
     }
   ],
@@ -110,12 +100,14 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     })),
 
   setCurrentTime: (time) => {
+    set({ currentTime: time })
     const { audioManager } = get()
     if (audioManager && !audioManager.isPlaying()) {
-      // Only seek if audio is not playing to avoid circular updates
-      audioManager.seekTo(time)
+      // Delay audio seek to avoid immediate callback interference
+      setTimeout(() => {
+        audioManager.seekTo(time)
+      }, 0)
     }
-    set({ currentTime: time })
   },
 
   setSelectedObject: (id) => set({ selectedObjectId: id }),
@@ -175,12 +167,20 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       // Create new audio manager
       const audioManager = new AudioManager((playbackState) => {
         // Update store state when audio manager state changes
-        set({
-          currentTime: playbackState.currentTime,
+        // Only update currentTime if audio is playing to avoid overriding manual seeks
+        const state = get()
+        const updates: Partial<Pick<EditorState, 'currentTime' | 'duration' | 'isPlaying' | 'isEditorPlaying'>> = {
           duration: playbackState.duration,
           isPlaying: playbackState.isPlaying,
           isEditorPlaying: playbackState.isEditorPlaying
-        })
+        }
+        
+        // Only update currentTime if audio is actually playing to avoid overriding manual seeks
+        if (playbackState.isPlaying) {
+          updates.currentTime = playbackState.currentTime
+        }
+        
+        set(updates)
       })
       
       // Set audio data in manager

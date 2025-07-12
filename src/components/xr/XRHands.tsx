@@ -8,7 +8,7 @@ interface SaberProps {
 
 function SaberModel({ color }: SaberProps) {
   return (
-    <group position={[0, 0, -0.1]} rotation={[Math.PI / 2, 0, 0]}>
+    <group position={[0, 0, -0.1]} rotation={[-Math.PI / 2, 0, 0]}>
       {/* Saber handle */}
       <mesh position={[0, 0, 0]}>
         <cylinderGeometry args={[0.02, 0.02, 0.2, 16]} />
