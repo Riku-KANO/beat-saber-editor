@@ -1,7 +1,7 @@
 import React from 'react'
 import { useEditorStore } from '../../store/editorStore'
 import { useTheme } from '../../contexts/ThemeContext'
-import CanvasTimeline from './CanvasTimeline'
+import PixiTimeline from './PixiTimeline'
 import AudioImport from '../ui/AudioImport'
 import './Timeline.css'
 
@@ -158,6 +158,7 @@ function Timeline() {
         <span className="time-display" style={{ color: theme.textSecondary }}>
           {currentTime.toFixed(2)}s / {duration.toFixed(2)}s
         </span>
+        
         <div className="add-object-controls">
           <button 
             onClick={() => {
@@ -249,7 +250,7 @@ function Timeline() {
       </div>
       
       <div className="timeline-content">
-        <CanvasTimeline height={250} />
+        <PixiTimeline height={250} />
       </div>
     </div>
   )
