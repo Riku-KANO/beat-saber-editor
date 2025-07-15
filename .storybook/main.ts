@@ -11,7 +11,17 @@ const config: StorybookConfig = {
   ],
   "framework": {
     "name": "@storybook/react-vite",
-    "options": {}
+    "options": {
+      viteConfigPath: "../vite.config.ts"
+    }
+  },
+  "viteFinal": async (config) => {
+    // Optimize for PixiJS and WebGL in Storybook
+    config.define = {
+      ...config.define,
+      'import.meta.env.STORYBOOK': true
+    }
+    return config
   }
 };
 export default config;

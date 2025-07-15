@@ -250,26 +250,27 @@ function AppContent() {
               <Canvas 
                 camera={{ position: [0, 2, -8], fov: 60 }}
                 gl={{ 
-                  antialias: false,
+                  antialias: true, // Enable antialiasing for better visuals
                   alpha: false,
-                  powerPreference: "low-power", // Use low-power GPU
+                  powerPreference: "default", // Let browser decide
                   preserveDrawingBuffer: false,
-                  failIfMajorPerformanceCaveat: false,
-                  depth: true,
-                  stencil: false // Disable stencil buffer
+                  failIfMajorPerformanceCaveat: false, // Allow fallback
+                  depth: true, // Enable depth buffer for proper 3D
+                  stencil: false,
+                  premultipliedAlpha: true // Standard WebGL setting
                 }}
-                dpr={1} // Force pixel ratio to 1
-                onCreated={({ gl, camera }) => {
+                dpr={window.devicePixelRatio || 1} // Use device pixel ratio for crisp rendering
+                onCreated={({ gl }) => {
                   try {
                     gl.setClearColor(theme.sceneBackground || '#1a1a1a')
-                    gl.setPixelRatio(1) // Force 1x pixel ratio
                     
                     // WebGL context lost recovery
                     gl.domElement.addEventListener('webglcontextlost', (event) => {
                       event.preventDefault()
+                      console.log('Preview Canvas: WebGL context lost, will recover')
                     })
                     gl.domElement.addEventListener('webglcontextrestored', () => {
-                      // Context restored
+                      console.log('Preview Canvas: WebGL context restored')
                     })
                   } catch (error) {
                     console.error('Error setting up preview canvas:', error)
@@ -304,26 +305,27 @@ function AppContent() {
                     <Canvas 
                       camera={{ position: [0, 2, -8], fov: 60 }}
                       gl={{ 
-                        antialias: false,
+                        antialias: true, // Enable antialiasing for better visuals
                         alpha: false,
-                        powerPreference: "low-power", // Use low-power GPU
+                        powerPreference: "default", // Let browser decide
                         preserveDrawingBuffer: false,
-                        failIfMajorPerformanceCaveat: false,
-                        depth: true,
-                        stencil: false // Disable stencil buffer
+                        failIfMajorPerformanceCaveat: false, // Allow fallback
+                        depth: true, // Enable depth buffer for proper 3D
+                        stencil: false,
+                        premultipliedAlpha: true // Standard WebGL setting
                       }}
-                      dpr={1} // Force pixel ratio to 1
+                      dpr={window.devicePixelRatio || 1} // Use device pixel ratio for crisp rendering
                       onCreated={({ gl }) => {
                         try {
                           gl.setClearColor(theme.sceneBackground || '#1a1a1a')
-                          gl.setPixelRatio(1) // Force 1x pixel ratio
                           
                           // WebGL context lost recovery
                           gl.domElement.addEventListener('webglcontextlost', (event) => {
                             event.preventDefault()
+                            console.log('Editor Canvas: WebGL context lost, will recover')
                           })
                           gl.domElement.addEventListener('webglcontextrestored', () => {
-                            // Context restored
+                            console.log('Editor Canvas: WebGL context restored')
                           })
                         } catch (error) {
                           console.error('Error setting up editor canvas:', error)

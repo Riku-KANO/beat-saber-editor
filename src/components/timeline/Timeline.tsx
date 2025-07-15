@@ -1,7 +1,7 @@
 import React from 'react'
 import { useEditorStore } from '../../store/editorStore'
 import { useTheme } from '../../contexts/ThemeContext'
-import PixiTimeline from './PixiTimeline'
+import ReactPixiTimeline from './ReactPixiTimeline'
 import AudioImport from '../ui/AudioImport'
 import './Timeline.css'
 
@@ -250,7 +250,7 @@ function Timeline() {
       </div>
       
       <div className="timeline-content">
-        <PixiTimeline height={250} />
+        <ReactPixiTimeline height={250} />
       </div>
     </div>
   )
