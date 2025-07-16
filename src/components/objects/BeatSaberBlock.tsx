@@ -1,6 +1,4 @@
-import React, { useRef, useMemo } from 'react'
-import { useFrame } from '@react-three/fiber'
-import { Mesh } from 'three'
+import React, { useMemo } from 'react'
 import { EditorObject, Keyframe, useEditorStore } from '../../store/editorStore'
 import { useCameraCulling } from '../../utils/cullingUtils'
 import TransformGizmo from './TransformGizmo'
@@ -52,7 +50,6 @@ function interpolateKeyframes(keyframes: Keyframe[], time: number) {
 }
 
 function BeatSaberBlock({ object, currentTime, isPreview = false, isEditor = false }: Props) {
-  const meshRef = useRef<Mesh>(null)
   const { selectedObjectId, updateKeyframe, bpm } = useEditorStore()
   const { isObjectVisible } = useCameraCulling()
   
@@ -106,10 +103,6 @@ function BeatSaberBlock({ object, currentTime, isPreview = false, isEditor = fal
     }
   }
 
-  const previewPosition: [number, number, number] = isPreview 
-    ? [interpolated.position[0], interpolated.position[1], interpolated.position[2] + 20 - currentTime * 10]
-    : interpolated.position
-    
   // In Editor mode, show all keyframes as separate instances
   if (isEditor) {
     return (
@@ -172,25 +165,54 @@ function BeatSaberBlock({ object, currentTime, isPreview = false, isEditor = fal
     )
   }
   
-  // Preview mode logic - only show if in preview mode
+  // Preview mode logic - show each keyframe individually with correct timing
   if (isPreview) {
-    const finalPosition = previewPosition
-    const isSelected = selectedObjectId === object.id
-
+    const speed = 10 // blocks per second speed
+    const approachDistance = 20 // distance blocks start from
+    
     return (
       <group>
-        <mesh 
-          ref={meshRef}
-          position={finalPosition}
-          rotation={interpolated.rotation}
-        >
-          <boxGeometry args={[0.8, 0.8, 0.8]} />
-          <meshStandardMaterial color={color} />
-        </mesh>
-        
-        <group position={finalPosition} rotation={interpolated.rotation}>
-          {getCutDirectionArrow()}
-        </group>
+        {object.keyframes.map((keyframe, index) => {
+          // Calculate when this keyframe should appear and disappear
+          const appearTime = keyframe.time - (approachDistance / speed) // 2 seconds before keyframe time
+          const hitTime = keyframe.time // when block reaches user (z=0)
+          const disappearTime = keyframe.time + 1 // disappear 1 second after hit
+          
+          // Only show if within the time window
+          if (currentTime < appearTime || currentTime > disappearTime) {
+            return null
+          }
+          
+          // Calculate position: block moves from z=20 to z=0 over 2 seconds
+          const timeUntilHit = hitTime - currentTime
+          const zPosition = timeUntilHit * speed
+          
+          const previewPosition: [number, number, number] = [
+            keyframe.position[0],
+            keyframe.position[1], 
+            zPosition
+          ]
+          
+          // Scale based on distance (closer = larger)
+          const distanceScale = Math.max(0.5, 1 - (zPosition / approachDistance) * 0.5)
+          
+          return (
+            <group key={`${object.id}-preview-${index}`}>
+              <mesh 
+                position={previewPosition}
+                rotation={keyframe.rotation}
+                scale={[distanceScale, distanceScale, distanceScale]}
+              >
+                <boxGeometry args={[0.8, 0.8, 0.8]} />
+                <meshStandardMaterial color={color} />
+              </mesh>
+              
+              <group position={previewPosition} rotation={keyframe.rotation} scale={[distanceScale, distanceScale, distanceScale]}>
+                {getCutDirectionArrow()}
+              </group>
+            </group>
+          )
+        })}
       </group>
     )
   }

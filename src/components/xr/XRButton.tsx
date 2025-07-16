@@ -38,13 +38,15 @@ export default function XRButton({ className, xrStore }: XRButtonProps) {
     xrStore.exitXR()
   }
 
+  const isPresenting = !!xrStore.session
+
   return (
     <button
       className={`xr-button ${className || ''}`}
-      onClick={xrStore.isPresenting ? handleExitXR : handleEnterXR}
+      onClick={isPresenting ? handleExitXR : handleEnterXR}
       style={{
-        background: xrStore.isPresenting ? theme.accent : theme.backgroundSecondary,
-        color: xrStore.isPresenting ? 'white' : theme.text,
+        background: isPresenting ? theme.accent : theme.backgroundSecondary,
+        color: isPresenting ? 'white' : theme.text,
         border: `2px solid ${theme.accent}`,
         borderRadius: '8px',
         padding: '12px 24px',
@@ -57,20 +59,20 @@ export default function XRButton({ className, xrStore }: XRButtonProps) {
         gap: '8px',
       }}
       onMouseEnter={(e) => {
-        if (!xrStore.isPresenting) {
+        if (!isPresenting) {
           e.currentTarget.style.background = theme.accent
           e.currentTarget.style.color = 'white'
         }
       }}
       onMouseLeave={(e) => {
-        if (!xrStore.isPresenting) {
+        if (!isPresenting) {
           e.currentTarget.style.background = theme.backgroundSecondary
           e.currentTarget.style.color = theme.text
         }
       }}
     >
       <span style={{ fontSize: '20px' }}>🥽</span>
-      {xrStore.isPresenting ? 'Exit XR' : 'Enter XR'}
+      {isPresenting ? 'Exit XR' : 'Enter XR'}
     </button>
   )
 }

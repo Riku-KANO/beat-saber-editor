@@ -1,6 +1,4 @@
-import { useRef, useMemo } from 'react'
-import { useFrame } from '@react-three/fiber'
-import { Mesh } from 'three'
+import { useMemo } from 'react'
 import { useEditorStore } from '../../store/editorStore'
 import { useCameraCulling } from '../../utils/cullingUtils'
 
@@ -49,7 +47,6 @@ function interpolateKeyframes(keyframes: BeatSaberBombProps['keyframes'], time: 
 }
 
 export default function BeatSaberBomb({ id, keyframes, isPreview = false, isEditor = false }: BeatSaberBombProps) {
-  const meshRef = useRef<Mesh>(null)
   const { currentTime, setSelectedObject, selectedObjectId, bpm } = useEditorStore()
   const { isObjectVisible } = useCameraCulling()
   
@@ -59,7 +56,7 @@ export default function BeatSaberBomb({ id, keyframes, isPreview = false, isEdit
     return beatInterval / 4
   }
 
-  const { position, rotation } = interpolateKeyframes(keyframes, currentTime)
+  const { position } = interpolateKeyframes(keyframes, currentTime)
 
   // Check if object should be rendered (culling)
   const shouldRender = useMemo(() => 
@@ -72,10 +69,6 @@ export default function BeatSaberBomb({ id, keyframes, isPreview = false, isEdit
     return null
   }
   
-  const previewPosition: [number, number, number] = isPreview 
-    ? [position[0], position[1], position[2] + 20 - currentTime * 10]
-    : position
-    
   // In Editor mode, show all keyframes as separate instances
   if (isEditor) {
     return (
@@ -127,45 +120,78 @@ export default function BeatSaberBomb({ id, keyframes, isPreview = false, isEdit
     )
   }
   
-  // Preview mode logic - only show if in preview mode
+  // Preview mode logic - show each keyframe individually with correct timing
   if (isPreview) {
-    const finalPosition = previewPosition
-
-    useFrame(() => {
-      if (meshRef.current) {
-        meshRef.current.position.set(...previewPosition)
-        meshRef.current.rotation.set(...rotation)
-      }
-    })
-
-    const handleClick = (e: any) => {
-      e.stopPropagation()
-      setSelectedObject(id)
-    }
-
-    const isSelected = selectedObjectId === id
-
+    const speed = 10 // blocks per second speed
+    const approachDistance = 20 // distance blocks start from
+    
     return (
-      <mesh
-        ref={meshRef}
-        onClick={handleClick}
-        position={finalPosition}
-        rotation={rotation}
-      >
-        <sphereGeometry args={[0.4, 16, 16]} />
-        <meshStandardMaterial
-          color={isSelected ? '#ff6b6b' : '#2c2c2c'}
-          wireframe={isSelected}
-          emissive={isSelected ? '#ff0000' : '#000000'}
-          emissiveIntensity={isSelected ? 0.3 : 0}
-        />
-        <sphereGeometry args={[0.3, 8, 8]} />
-        <meshStandardMaterial
-          color="#ff0000"
-          transparent
-          opacity={0.7}
-        />
-      </mesh>
+      <group>
+        {keyframes.map((keyframe, index) => {
+          // Calculate when this keyframe should appear and disappear
+          const appearTime = keyframe.time - (approachDistance / speed) // 2 seconds before keyframe time
+          const hitTime = keyframe.time // when bomb reaches user (z=0)
+          const disappearTime = keyframe.time + 1 // disappear 1 second after hit
+          
+          // Only show if within the time window
+          if (currentTime < appearTime || currentTime > disappearTime) {
+            return null
+          }
+          
+          // Calculate position: bomb moves from z=20 to z=0 over 2 seconds
+          const timeUntilHit = hitTime - currentTime
+          const zPosition = timeUntilHit * speed
+          
+          const previewPosition: [number, number, number] = [
+            keyframe.position[0],
+            keyframe.position[1], 
+            zPosition
+          ]
+          
+          // Scale based on distance (closer = larger)
+          const distanceScale = Math.max(0.5, 1 - (zPosition / approachDistance) * 0.5)
+          
+          const handleClick = (e: any) => {
+            e.stopPropagation()
+            setSelectedObject(id)
+          }
+
+          const isSelected = selectedObjectId === id
+
+          return (
+            <group key={`${id}-preview-${index}`}>
+              <mesh
+                onClick={handleClick}
+                position={previewPosition}
+                rotation={keyframe.rotation}
+                scale={[distanceScale, distanceScale, distanceScale]}
+              >
+                <sphereGeometry args={[0.4, 16, 16]} />
+                <meshStandardMaterial
+                  color={isSelected ? '#ff6b6b' : '#2c2c2c'}
+                  wireframe={isSelected}
+                  emissive={isSelected ? '#ff0000' : '#000000'}
+                  emissiveIntensity={isSelected ? 0.3 : 0}
+                />
+              </mesh>
+              
+              {/* Inner red core */}
+              <mesh
+                position={previewPosition}
+                rotation={keyframe.rotation}
+                scale={[distanceScale, distanceScale, distanceScale]}
+              >
+                <sphereGeometry args={[0.3, 8, 8]} />
+                <meshStandardMaterial
+                  color="#ff0000"
+                  transparent
+                  opacity={0.7}
+                />
+              </mesh>
+            </group>
+          )
+        })}
+      </group>
     )
   }
   
