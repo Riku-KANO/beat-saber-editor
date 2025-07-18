@@ -23,6 +23,7 @@ const HEADER_WIDTH = 120
 function ReactPixiTimeline({ height = 300 }: ReactPixiTimelineProps) {
   const { theme } = useTheme()
   const [viewportWidth, setViewportWidth] = useState(800)
+  const [scrollX, setScrollX] = useState(0)
   const timelineContainerRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<any>(null)
 
@@ -95,13 +96,13 @@ function ReactPixiTimeline({ height = 300 }: ReactPixiTimelineProps) {
     if (!setCurrentTime || duration === 0) return
     
     const globalPosition = event.data.global
-    const timelineX = globalPosition.x - HEADER_WIDTH
+    const timelineX = globalPosition.x + scrollX
     
     if (timelineX >= 0) {
       const newTime = (timelineX / timelineWidth) * duration
       setCurrentTime(Math.max(0, Math.min(duration, newTime)))
     }
-  }, [timelineWidth, duration, setCurrentTime])
+  }, [timelineWidth, duration, setCurrentTime, scrollX])
 
   // Viewport width updates
   useEffect(() => {
@@ -125,14 +126,19 @@ function ReactPixiTimeline({ height = 300 }: ReactPixiTimelineProps) {
 
     const secondWidth = timelineWidth / duration
     
-    // Draw second markers across full timeline height
-    for (let second = 0; second <= duration; second++) {
+    // Only draw visible grid lines
+    const startSecond = Math.floor(scrollX / secondWidth)
+    const endSecond = Math.ceil((scrollX + viewportWidth) / secondWidth)
+    
+    for (let second = startSecond; second <= Math.min(endSecond, duration); second++) {
       const x = second * secondWidth
-      graphics.moveTo(x, 0)
-      graphics.lineTo(x, timelineHeight)
-      graphics.stroke({ width: second % 5 === 0 ? 2 : 1, color: colors.border, alpha: 0.3 })
+      if (x >= scrollX && x <= scrollX + viewportWidth) {
+        graphics.moveTo(x, 0)
+        graphics.lineTo(x, timelineHeight)
+        graphics.stroke({ width: second % 5 === 0 ? 2 : 1, color: colors.border, alpha: 0.3 })
+      }
     }
-  }, [duration, timelineWidth, timelineHeight, colors.border])
+  }, [duration, timelineWidth, timelineHeight, scrollX, viewportWidth, colors.border])
 
   const drawWaveform = useCallback((graphics: Graphics) => {
     graphics.clear()
@@ -142,8 +148,11 @@ function ReactPixiTimeline({ height = 300 }: ReactPixiTimelineProps) {
     const trackCenterY = TRACK_HEIGHT / 2
     const trackHeight = TRACK_HEIGHT - 10
 
-    // Draw full waveform across timeline width
-    for (let x = 0; x < timelineWidth; x += 2) {
+    // Only draw visible portion of waveform
+    const startX = Math.max(0, scrollX)
+    const endX = Math.min(timelineWidth, scrollX + viewportWidth)
+    
+    for (let x = startX; x < endX; x += 2) {
       const sampleIndex = Math.floor((x / timelineWidth) * channelData.length)
       if (sampleIndex >= 0 && sampleIndex < channelData.length) {
         const sample = channelData[sampleIndex]
@@ -157,23 +166,26 @@ function ReactPixiTimeline({ height = 300 }: ReactPixiTimelineProps) {
         graphics.fill(colors.accent)
       }
     }
-  }, [audioBuffer, duration, timelineWidth, colors.accent])
+  }, [audioBuffer, duration, timelineWidth, scrollX, viewportWidth, colors.accent])
 
   const drawPlayhead = useCallback((graphics: Graphics) => {
     graphics.clear()
     if (duration === 0) return
     
-    const playheadX = (currentTime / duration) * timelineWidth
+    const playheadX = (currentTime / duration) * timelineWidth - scrollX
     
-    // Draw playhead line across full timeline height
-    graphics.moveTo(playheadX, 0)
-    graphics.lineTo(playheadX, timelineHeight)
-    graphics.stroke({ width: 2, color: 0xff4444 })
-    
-    // Playhead handle at top
-    graphics.rect(playheadX - 5, 0, 10, 20)
-    graphics.fill(0xff4444)
-  }, [currentTime, duration, timelineWidth, timelineHeight])
+    // Only draw playhead if it's visible in the viewport
+    if (playheadX >= 0 && playheadX <= viewportWidth) {
+      // Draw playhead line across full timeline height
+      graphics.moveTo(playheadX, 0)
+      graphics.lineTo(playheadX, timelineHeight)
+      graphics.stroke({ width: 2, color: 0xff4444 })
+      
+      // Playhead handle at top
+      graphics.rect(playheadX - 5, 0, 10, 20)
+      graphics.fill(0xff4444)
+    }
+  }, [currentTime, duration, timelineWidth, scrollX, viewportWidth, timelineHeight])
 
   return (
     <div
@@ -296,6 +308,7 @@ function ReactPixiTimeline({ height = 300 }: ReactPixiTimelineProps) {
             }}
             trackpad={{ constrain: true }}
             onPointerDown={handleClick}
+            onScroll={(e: any) => setScrollX(e.scrollX || 0)}
           >
             {/* Scrollable Content Container */}
             <pixiContainer 
